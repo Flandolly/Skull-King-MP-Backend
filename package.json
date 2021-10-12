@@ -16,7 +16,9 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start" : "node server.js",
+    "dev" : "nodemon server.js"
   },
   "engines": {
     "node": ">=16.6.3",
