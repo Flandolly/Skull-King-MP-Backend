@@ -14,9 +14,13 @@
   "name": "skull-king-mp-backend",
   "description": "",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
+  },
+  "engines": {
+    "node": ">=16.6.3",
+    "npm" : ">=7.21.0"
   },
   "repository": {
     "type": "git",
@@ -30,6 +34,8 @@
   },
   "homepage": "https://github.com/Flandolly/Skull-King-MP-Backend#readme",
   "devDependencies": {
-    "nodemon": "^2.0.13"
+    "nodemon": "^2.0.13",
+    "mocha" : "*",
+    "chai" : "*"
   }
 }
