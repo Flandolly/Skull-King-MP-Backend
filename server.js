@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const { handleErrors, handleValidationErrors } = require('./middleware/custom_errors')
+const {handleErrors, handleValidationErrors} = require('./middleware/custom_errors')
 
 app.use(cors())
 app.use(express.json())
