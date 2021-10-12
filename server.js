@@ -12,6 +12,9 @@ app.use((err, req, res, next) => {
     res.status(statusCode).send(message)
 })
 
+const userController = require("./controllers/users")
+app.use("/api", userController)
+
 app.get('/', (req, res) => {
     res.send("Hello, world!")
 })

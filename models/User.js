@@ -2,11 +2,15 @@ const mongoose = require('../database/connection');
 
 const userSchema = new mongoose.Schema(
     {
-        firstname: {
+        firstName: {
             type: String,
             required: true,
         },
-        lastname: {
+        lastName: {
+            type: String,
+            required: true
+        },
+        email: {
             type: String,
             required: true
         },
@@ -22,6 +26,13 @@ const userSchema = new mongoose.Schema(
     },
     {
         timestamps: true,
+        toJSON: {
+            virtuals: true,
+            transform: (_document, ret) => {
+                delete ret.password
+                return ret
+            },
+        }
     }
 )
 
