@@ -1,9 +1,12 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const http = require("http");
+const {createServer} = require("http");
 const index = require('./routes/index')
 const {handleErrors, handleValidationErrors} = require('./middleware/custom_errors')
+const Cookies = require('universal-cookie')
+
+const cookies = new Cookies()
 
 app.use(cors())
 app.use(express.json())
@@ -18,35 +21,34 @@ const userController = require("./controllers/users")
 app.use("/api", userController)
 app.use(index)
 
-const server = http.createServer(app)
-const socketIO = require('socket.io')
-const io = socketIO(server, {
+const httpServer = createServer(app)
+const {Server} = require('socket.io')
+const io = new Server(httpServer, {
     cors: {
         origin: "*"
     }
 })
 
-let interval
-
 io.on("connection", (socket) => {
-    console.log("Client connection established")
-    if (interval) {
-        clearInterval(interval)
-    }
-    interval = setInterval(() => getApiAndEmit(socket), 50)
+    console.log(cookies.get("buttonPosition"))
+    console.log("A user just connected: ", socket.id)
     socket.on("disconnect", () => {
-        console.log("Client disconnected.")
+        console.log("A user has disconnected: ", socket.id)
     })
-})
+    socket.on("buttonClicked", (data) => {
+        io.emit("buttonClicked", data)
+        cookies.set("buttonPosition", data)
+    })
+    console.log(io.of("/").sockets.size)
+    if (cookies.get("buttonPosition")) {
+        io.emit("buttonPosition", cookies.get("buttonPosition"))
+    }
 
-const getApiAndEmit = (socket) => {
-    const response = new Date()
-    socket.emit("FromAPI", response)
-}
+})
 
 app.use(handleValidationErrors)
 app.use(handleErrors)
 app.set("port", process.env.PORT || 8080)
-server.listen(app.get("port"), () => {
+httpServer.listen(app.get("port"), () => {
     console.log("Listening on port ", app.get("port"));
 })

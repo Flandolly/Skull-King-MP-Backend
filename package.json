@@ -11,7 +11,9 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "prettier": "^2.4.1",
-    "socket.io": "^4.2.0"
+    "socket.io": "^4.2.0",
+    "universal-cookie": "^4.0.4",
+    "universal-cookie-express": "^4.0.3"
   },
   "name": "skull-king-mp-backend",
   "description": "",
@@ -41,5 +43,9 @@
     "chai": "*",
     "mocha": "*",
     "nodemon": "^2.0.13"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.4",
+    "utf-8-validate": "^5.0.6"
   }
 }
