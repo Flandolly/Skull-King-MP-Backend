@@ -2,10 +2,11 @@ const express = require('express')
 const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const {createUserToken} = require("../middleware/auth")
+const {checkDupes} = require("../middleware/verifySignup");
 
 const router = express.Router()
 
-router.post("/signup", (req, res, next) => {
+router.post("/signup", checkDupes, (req, res, next) => {
     bcrypt
         .hash(req.body.password, 10)
         .then((hash) =>

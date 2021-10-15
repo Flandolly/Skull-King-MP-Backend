@@ -30,19 +30,18 @@ const io = new Server(httpServer, {
 })
 
 io.on("connection", (socket) => {
-    console.log(cookies.get("buttonPosition"))
     console.log("A user just connected: ", socket.id)
     socket.on("disconnect", () => {
         console.log("A user has disconnected: ", socket.id)
     })
-    socket.on("buttonClicked", (data) => {
-        io.emit("buttonClicked", data)
-        cookies.set("buttonPosition", data)
-    })
+    // socket.on("buttonClicked", (data) => {
+    //     io.emit("buttonClicked", data)
+    //     cookies.set("buttonPosition", data)
+    // })
     console.log(io.of("/").sockets.size)
-    if (cookies.get("buttonPosition")) {
-        io.emit("buttonPosition", cookies.get("buttonPosition"))
-    }
+    // if (cookies.get("buttonPosition")) {
+    //     io.emit("buttonPosition", cookies.get("buttonPosition"))
+    // }
 
 })
 
