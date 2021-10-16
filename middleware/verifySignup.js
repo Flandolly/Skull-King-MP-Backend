@@ -11,6 +11,7 @@ const checkDupes = (req, res, next) => {
                     if (user) {
                         return res.status(422).send({response: "Email already in use."})
                     }
+                    next()
                 })
         })
 }

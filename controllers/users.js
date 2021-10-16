@@ -21,9 +21,6 @@ router.post("/signup", checkDupes, (req, res, next) => {
         .then((user) => User.create(user))
         .then((user) => res.status(201).json(user))
         .catch(next)
-    // User.create(req.body)
-    //     .then((user) => res.status(201).json(user))
-    //     .catch(next);
 })
 
 router.post("/signin", (req, res, next) => {
