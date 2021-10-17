@@ -25,7 +25,7 @@ router.post("/signup", checkDupes, (req, res, next) => {
 
 router.post("/signin", (req, res, next) => {
     User.findOne({ email: req.body.email })
-        .then((user) => createUserToken(req, user))
+        .then((user) => createUserToken(req, res, user))
         .then((token) => res.json({ token }))
         .catch(next);
 })

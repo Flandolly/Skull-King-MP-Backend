@@ -4,13 +4,12 @@ const cors = require('cors');
 const {createServer} = require("http");
 const index = require('./routes/index')
 const {handleErrors, handleValidationErrors} = require('./middleware/custom_errors')
-const Cookies = require('universal-cookie')
-
-const cookies = new Cookies()
+const cookieParser = require('cookie-parser')
 
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
+app.use(cookieParser())
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
     const message = err.message || "Internal Server Error";

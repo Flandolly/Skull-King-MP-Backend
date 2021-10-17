@@ -1,10 +1,9 @@
 const passport = require('passport')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const cookieParser = require('cookie-parser')
 const User = require('../models/User')
 
-const secret = process.env.SECRET || "np6YkW7ICff6AOIYAT2y"
+const secret = process.env.SECRET || "J+[xrk_7rW{j*;}@/HJud2X;a*87SAdX+4Rhz4m2M:)kJ(nyx."
 
 const {Strategy, ExtractJwt} = require('passport-jwt')
 
@@ -23,13 +22,15 @@ passport.use(strategy)
 passport.initialize()
 
 const requireToken = passport.authenticate("jwt", {session: true})
-const createUserToken = (req, user) => {
+const createUserToken = (req, res, user) => {
     if (!user || !req.body.password || !bcrypt.compareSync(req.body.password, user.password)) {
         const err = new Error("Username or password is incorrect.")
         err.statusCode = 422
         throw err
     }
-    return jwt.sign({id: user._id}, secret, {expiresIn: 36000})
+    const token = jwt.sign({id: user._id}, secret, {expiresIn: 36000})
+    res.cookie("token", token, {httpOnly: true})
+    return token
 }
 
 module.exports = {
