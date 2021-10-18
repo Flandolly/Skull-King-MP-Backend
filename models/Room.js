@@ -10,7 +10,6 @@ const roomSchema = new mongoose.Schema(
         players: {
             type: [mongoose.Schema.Types.ObjectId],
             ref: "User",
-            required: true,
         },
         isPublic: {
             type: Boolean,
@@ -19,6 +18,11 @@ const roomSchema = new mongoose.Schema(
         status: {
             type: String,
             default: "Waiting for Players"
+        },
+        owner: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
         }
     },
     {
