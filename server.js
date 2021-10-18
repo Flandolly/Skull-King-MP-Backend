@@ -17,7 +17,9 @@ app.use((err, req, res, next) => {
 })
 
 const userController = require("./controllers/users")
+const roomController = require("./controllers/rooms")
 app.use("/api", userController)
+app.use("/api/rooms", roomController)
 app.use(index)
 
 const httpServer = createServer(app)
