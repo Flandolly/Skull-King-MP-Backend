@@ -23,28 +23,14 @@ app.use("/api/rooms", roomController)
 app.use(index)
 
 const httpServer = createServer(app)
-const {Server} = require('socket.io')
-const io = new Server(httpServer, {
+
+const io = require('socket.io')(httpServer, {
     cors: {
         origin: "*"
     }
 })
 
-io.on("connection", (socket) => {
-    console.log("A user just connected: ", socket.id)
-    socket.on("disconnect", () => {
-        console.log("A user has disconnected: ", socket.id)
-    })
-    // socket.on("buttonClicked", (data) => {
-    //     io.emit("buttonClicked", data)
-    //     cookies.set("buttonPosition", data)
-    // })
-    console.log(io.of("/").sockets.size)
-    // if (cookies.get("buttonPosition")) {
-    //     io.emit("buttonPosition", cookies.get("buttonPosition"))
-    // }
-
-})
+require("./websocket/socketController")(io)
 
 app.use(handleValidationErrors)
 app.use(handleErrors)

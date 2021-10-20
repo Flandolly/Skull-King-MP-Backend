@@ -11,6 +11,10 @@ const roomSchema = new mongoose.Schema(
             type: [mongoose.Schema.Types.ObjectId],
             ref: "User",
         },
+        maxPlayers: {
+            type: Number,
+            required: true
+        },
         isPublic: {
             type: Boolean,
             default: true
