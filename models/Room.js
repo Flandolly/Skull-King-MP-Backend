@@ -8,7 +8,7 @@ const roomSchema = new mongoose.Schema(
             default: "New Game"
         },
         players: {
-            type: [mongoose.Schema.Types.ObjectId],
+            type: [String],
             ref: "User",
         },
         maxPlayers: {
