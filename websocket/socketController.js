@@ -7,8 +7,6 @@ module.exports = function (io) {
 
         socket.on("disconnect", () => {
             console.log("A user has disconnected: ", socket.id)
-            socket.removeAllListeners('chatMessage');
-            socket.removeAllListeners('disconnect');
         })
 
         socket.on("roomCreated", (room) => {
