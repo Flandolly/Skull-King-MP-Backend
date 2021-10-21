@@ -7,71 +7,51 @@ module.exports = function (io) {
 
         socket.on("disconnect", () => {
             console.log("A user has disconnected: ", socket.id)
+            socket.removeAllListeners('chatMessage');
+            socket.removeAllListeners('disconnect');
         })
 
-        socket.on("roomCreated", (room, user) => {
+        socket.on("roomCreated", (room) => {
             Room.create(room)
                 .then((newRoom) => {
-                    socket.join(room._id)
-                    io.emit("roomCreated", newRoom)
-                    io.to(room._id).emit("syncRoom", newRoom)
+                    socket.join(newRoom.id)
+                    io.to(newRoom.id).emit("roomCreated", newRoom)
+                    io.to(newRoom.id).emit("syncRoom", newRoom)
                 })
         })
 
-        socket.on("syncRoom", (roomID) => {
+        socket.on("syncRooms", (roomID) => {
             Room.findById(roomID)
                 .populate("owner", "username")
                 .then((room) => {
-                    io.emit("syncRoom", room)
+                    console.log("SyncRoom: ", room)
+                    console.log(socket.rooms)
+                    io.to(roomID).emit("syncRoom", room)
                 })
         })
 
         socket.on("userJoined", (user, room) => {
-            Room.findOneAndUpdate({_id: room._id}, {$push: {players: user.username}})
+            Room.findOneAndUpdate({_id: room._id}, {$push: {players: user.username}}, {new: true})
                 .then((room) => {
-                    socket.join(room._id)
-                    io.emit("syncRoom", room)
+                    console.log("userJoin: ", room)
+                    socket.join(room.id)
+                    io.to(room.id).emit("syncRoom", room)
                 })
         })
 
         socket.on("userLeft", (room, user) => {
-            Room.findOneAndUpdate({_id: room._id}, {$pull: {players: user.username}})
+            Room.findOneAndUpdate({_id: room._id}, {$pull: {players: user.username}}, {new: true})
                 .then((room) => {
-                    io.emit("syncRoom", room)
+                    io.to(room.id).emit("syncRoom", room)
+                    socket.leave(room.id)
                 })
         })
 
-        // socket.on("userJoined", (user, room) => {
-        //     // console.log(rooms)
-        //     console.log(room)
-        //     // console.log(user)
-        //     const findRoom = rooms.find(rm => rm.id === room.id)
-        //     if (!findRoom) {
-        //         io.emit("RoomJoinResponse", "Failure")
-        //         return
-        //     }
-        //     io.emit("RoomJoinResponse", "Success")
-        //     socket.join(room.id)
-        //     findRoom.players.push(user._id)
-        //     io.to(room.id).emit("syncRoom", findRoom)
-        //     //console.log("Client is in rooms: ", socket.rooms)
-        // })
-        //
-        // socket.on("userLeft", (user, room) => {
-        //     const findRoom = rooms.find(rm => rm._id === room._id)
-        //     if (!findRoom) {
-        //         io.emit("RoomLeaveResponse", "Room Failure")
-        //         return
-        //     }
-        //     if (!room.players.includes(user._id)) {
-        //         io.emit("RoomLeaveResponse", "Player Failure")
-        //         return
-        //     }
-        //     io.emit("RoomLeaveResponse", "Success")
-        //     findRoom.players.pop(players.indexOf(user._id))
-        //     io.to(room.id).emit("syncRoom", findRoom)
-        //     socket.leave(room.id)
-        // })
+        socket.on("chatMessage", (roomID, message) => {
+            console.log("roomID: ", roomID)
+            console.log("message: ", message)
+            io.to(parseInt(roomID)).emit("message", message)
+        })
 
         console.log(io.of("/").sockets.size)
     })
