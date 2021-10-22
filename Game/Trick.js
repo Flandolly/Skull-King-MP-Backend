@@ -51,10 +51,10 @@ class Trick {
     }
 }
 
-const x = new Trick([{suit: "Escape", value: 15}, {suit: "Escape", value: 15}, {
-    suit: "Escape",
-    value: 0
-}, {suit: "Pirate", value: 13},], ["1", "2", "3", "4"])
-
-console.log("Player: ", x.determineWinner())
+// const x = new Trick([{suit: "Escape", value: 15}, {suit: "Escape", value: 15}, {
+//     suit: "Escape",
+//     value: 0
+// }, {suit: "Pirate", value: 13},], ["1", "2", "3", "4"])
+//
+// console.log("Player: ", x.determineWinner())
 module.exports = Trick
