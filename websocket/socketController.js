@@ -8,9 +8,6 @@ const Game = require("../Game/Game")
 module.exports = function (io) {
 
     const rooms = []
-    let players = []
-    const deck = new Deck()
-    deck.build()
 
     io.on("connection", (socket) => {
         console.log("A user just connected: ", socket.id)
@@ -66,21 +63,23 @@ module.exports = function (io) {
         })
 
         socket.on("startGame", (room) => {
-            for (const player of room.players) {
-                players.push(player)
-            }
+            console.log("game initializing")
             socket.join(`${room.id}_PLAYING`)
-            io.to(room.id).emit("redirectToGameRoom")
-        })
+            console.log(io.sockets.adapter.rooms.get(`${room.id}_PLAYING`).size)
 
-        socket.on("initializeGame", () => {
+            const deck = new Deck()
             const playerList = []
-            for (const player of players) {
+
+            for (const player of room.players) {
                 playerList.push(new Player(player))
             }
-            console.log("game initializing")
-            deck.shuffle()
-            console.log(deck.show())
+
+            deck.build()
+
+            const newGame = new Game(playerList, deck)
+
+            io.to(room.id).emit("redirectToGameRoom")
+            // io.to(room.id).emit("gameStarted", newGame)
         })
 
         console.log(io.of("/").sockets.size)
