@@ -26,8 +26,12 @@ const httpServer = createServer(app)
 
 const io = require('socket.io')(httpServer, {
     cors: {
-        origin: "*"
-    }
+        origin: "*",
+        methods: ["GET", "POST"],
+        transports: ['websocket', 'polling'],
+        credentials: true
+    },
+    allowEIO3: true
 })
 
 require("./websocket/socketController")(io)
