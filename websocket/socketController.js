@@ -82,7 +82,7 @@ module.exports = function (io) {
             // console.log(playerList)
 
             newGame.dealCards()
-            console.log(newGame.players)
+            console.log(newGame.players[0].hand)
         })
 
         console.log(io.of("/").sockets.size)
