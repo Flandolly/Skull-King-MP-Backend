@@ -6,6 +6,11 @@ class Game {
         this.deck = deck
     }
 
+    // get players() { return this.players }
+    // get round() {return this.round}
+    // get deck() {return this.deck}
+    // get rounds() {return this.rounds}
+
     dealCards() {
         this.deck.shuffle()
         for (let i = 0; i < this.round; i++) {

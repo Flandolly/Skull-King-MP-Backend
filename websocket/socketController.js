@@ -31,7 +31,7 @@ module.exports = function (io) {
             Room.findById(roomID)
                 .populate("owner", "username")
                 .then((room) => {
-                    console.log("SyncRoom: ", room)
+                    // console.log("SyncRoom: ", room)
                     console.log(socket.rooms)
                     io.to(roomID).emit("syncRoom", room)
                 })
@@ -40,7 +40,7 @@ module.exports = function (io) {
         socket.on("userJoined", (user, room) => {
             Room.findOneAndUpdate({_id: room._id}, {$push: {players: user.username}}, {new: true})
                 .then((room) => {
-                    console.log("userJoin: ", room)
+                    // console.log("userJoin: ", room)
                     socket.join(room.id)
                     io.to(room.id).emit("syncRoom", room)
                     io.emit("roomList", rooms)
@@ -63,9 +63,9 @@ module.exports = function (io) {
         })
 
         socket.on("startGame", (room) => {
-            console.log("game initializing")
+            console.log("game initializing...")
             socket.join(`${room.id}_PLAYING`)
-            console.log(io.sockets.adapter.rooms.get(`${room.id}_PLAYING`).size)
+            console.log("Play room size:", io.sockets.adapter.rooms.get(`${room.id}_PLAYING`).size)
 
             const deck = new Deck()
             const playerList = []
@@ -79,7 +79,10 @@ module.exports = function (io) {
             const newGame = new Game(playerList, deck)
 
             io.to(room.id).emit("redirectToGameRoom")
-            // io.to(room.id).emit("gameStarted", newGame)
+            // console.log(playerList)
+
+            newGame.dealCards()
+            console.log(newGame.players)
         })
 
         console.log(io.of("/").sockets.size)
