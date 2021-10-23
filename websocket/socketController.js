@@ -1,13 +1,13 @@
 const Room = require("../models/Room")
 const Player = require("../Game/Player")
 const Deck = require("../Game/Deck")
-const Card = require("../Game/Card")
 const Trick = require("../Game/Trick")
 const Game = require("../Game/Game")
 
 module.exports = function (io) {
 
     const rooms = []
+    const games = []
 
     io.on("connection", (socket) => {
         console.log("A user just connected: ", socket.id)
@@ -63,35 +63,47 @@ module.exports = function (io) {
         })
 
         socket.on("startGame", (room) => {
-            console.log("game initializing...")
-
             const deck = new Deck()
             const playerList = []
 
             for (const player of room.players) {
                 playerList.push(new Player(player))
             }
-
             deck.build()
 
-            const newGame = new Game(playerList, deck)
+            //const newGame = new Game(playerList, deck)
+
+            games.push({room: room.id, data: new Game(playerList, deck)})
+
+            // console.log(games[0].data.players)
+            // console.log(room.players)
+            const foundRoom = games.find((game) => game.room === room.id)
+            console.log(foundRoom.data)
 
             io.to(room.id).emit("redirectToGameRoom")
 
-
-            newGame.dealCards()
-
+            foundRoom.data.dealCards()
+            //
             const connectedClients = [...io.sockets.adapter.rooms.get(room.id)]
             console.log([...io.sockets.adapter.rooms.get(room.id)])
+
             for (let i = 0; i < connectedClients.length; i++) {
-                io.to(connectedClients[i]).emit("gameStarted", [newGame.players[i]])
+                io.to(connectedClients[i]).emit("gameStarted", [foundRoom.data.players[i]])
             }
 
             setTimeout(() => {
                 for (let i = 0; i < connectedClients.length; i++) {
-                    io.to(connectedClients[i]).emit("getBid", [newGame.players[i]])
+                    io.to(connectedClients[i]).emit("getBid", [foundRoom.data.players[i], foundRoom.room])
                 }
             }, 10000)
+        })
+
+        socket.on("sendBid", (gameState, roomID) => {
+            const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID )
+            const foundRoom = games.find((game) => game.room === rooms[foundRoomID].id)
+            console.log(foundRoomID)
+            console.log(foundRoom)
+            console.log(`Got bid from player ${gameState.name} in room ${foundRoom.room}! The bid is ${gameState.bid}`)
         })
 
         console.log(io.of("/").sockets.size)
