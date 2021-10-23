@@ -64,8 +64,6 @@ module.exports = function (io) {
 
         socket.on("startGame", (room) => {
             console.log("game initializing...")
-            socket.join(`${room.id}_PLAYING`)
-            console.log("Play room size:", io.sockets.adapter.rooms.get(`${room.id}_PLAYING`).size)
 
             const deck = new Deck()
             const playerList = []
@@ -79,10 +77,21 @@ module.exports = function (io) {
             const newGame = new Game(playerList, deck)
 
             io.to(room.id).emit("redirectToGameRoom")
-            // console.log(playerList)
+
 
             newGame.dealCards()
-            console.log(newGame.players[0].hand)
+
+            const connectedClients = [...io.sockets.adapter.rooms.get(room.id)]
+            console.log([...io.sockets.adapter.rooms.get(room.id)])
+            for (let i = 0; i < connectedClients.length; i++) {
+                io.to(connectedClients[i]).emit("gameStarted", [newGame.players[i]])
+            }
+
+            setTimeout(() => {
+                for (let i = 0; i < connectedClients.length; i++) {
+                    io.to(connectedClients[i]).emit("getBid", [newGame.players[i]])
+                }
+            }, 10000)
         })
 
         console.log(io.of("/").sockets.size)
