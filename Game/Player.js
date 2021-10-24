@@ -7,6 +7,18 @@ class Player {
         this.points = 0
     }
 
+    set setBid(bid) {
+        this.bid = bid
+    }
+
+    set setTricks(tricks) {
+        this.tricks = tricks
+    }
+
+    set setPoints(points) {
+        this.points = points
+    }
+
     drawCard(deck) {
         this.hand.push(deck.pop())
     }

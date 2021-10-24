@@ -78,7 +78,7 @@ module.exports = function (io) {
             // console.log(games[0].data.players)
             // console.log(room.players)
             const foundRoom = games.find((game) => game.room === room.id)
-            console.log(foundRoom.data)
+            //console.log(foundRoom.data)
 
             io.to(room.id).emit("redirectToGameRoom")
 
@@ -95,15 +95,34 @@ module.exports = function (io) {
                 for (let i = 0; i < connectedClients.length; i++) {
                     io.to(connectedClients[i]).emit("getBid", [foundRoom.data.players[i], foundRoom.room])
                 }
-            }, 10000)
+            }, 20000)
         })
 
         socket.on("sendBid", (gameState, roomID) => {
+            let count = 0
             const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID )
             const foundRoom = games.find((game) => game.room === rooms[foundRoomID].id)
-            console.log(foundRoomID)
-            console.log(foundRoom)
+            console.log(gameState)
             console.log(`Got bid from player ${gameState.name} in room ${foundRoom.room}! The bid is ${gameState.bid}`)
+
+            foundRoom.data.players.find((player) => player.name === gameState.name).bid = gameState.bid
+            console.log(foundRoom.data)
+
+            const connectedClients = [...io.sockets.adapter.rooms.get(foundRoom.room)]
+
+            io.to(connectedClients[count]).emit("playerCanPlay")
+
+            const cardTimer = setInterval(() => {
+                io.to(connectedClients[count]).emit("getPlayedCard", [foundRoom.data.players[count], foundRoom.room])
+                // io.to(foundRoom.room).emit("updatePlayedCard")
+                count++
+
+                if (count === connectedClients.length) {
+                    clearInterval(cardTimer)
+                } else {
+                    io.to(connectedClients[count]).emit("playerCanPlay")
+                }
+            }, 10000)
         })
 
         console.log(io.of("/").sockets.size)
