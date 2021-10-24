@@ -9,6 +9,10 @@ module.exports = function (io) {
     const rooms = []
     const games = []
 
+    Room.find({})
+        .populate("owner", "username")
+        .then((rooms) => rooms.push(rooms))
+
     io.on("connection", (socket) => {
         console.log("A user just connected: ", socket.id)
 
