@@ -46,8 +46,8 @@ class Trick {
             }
         }
         this.winner = this.leadPlayer
-        console.log(this.leadCard)
-        return this.winner
+        // console.log(this.leadCard)
+        return this.winner.name
     }
 }
 

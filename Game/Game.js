@@ -38,6 +38,8 @@ class Game {
             player.tricks = 0
             player.bid = 0
         }
+
+        return this.players
     }
 }
 

@@ -72,71 +72,87 @@ module.exports = function (io) {
             }
             deck.build()
 
-            //const newGame = new Game(playerList, deck)
-
-            games.push({room: room.id, data: new Game(playerList, deck)})
-
-            // console.log(games[0].data.players)
-            // console.log(room.players)
-            const foundRoom = games.find((game) => game.room === room.id)
-            //console.log(foundRoom.data)
+            const newGame = {room: room.id, data: new Game(playerList, deck), gamePhase: 0, playerBids: 0, playerCards: 1, graveyard: []}
+            games.push(newGame)
 
             io.to(room.id).emit("redirectToGameRoom")
 
-            foundRoom.data.dealCards()
+            newGame.data.dealCards()
             //
             const connectedClients = [...io.sockets.adapter.rooms.get(room.id)]
             console.log([...io.sockets.adapter.rooms.get(room.id)])
 
             for (let i = 0; i < connectedClients.length; i++) {
-                io.to(connectedClients[i]).emit("gameStarted", [foundRoom.data.players[i], foundRoom.data.graveyard])
+                io.to(connectedClients[i]).emit("gameStarted", [newGame.data.players[i], newGame.data.graveyard])
             }
 
-            setTimeout(() => {
-                for (let i = 0; i < connectedClients.length; i++) {
-                    io.to(connectedClients[i]).emit("getBid", [foundRoom.data.players[i], foundRoom.room])
-                }
-            }, 20000)
+            for (let i = 0; i < connectedClients.length; i++) {
+                io.to(connectedClients[i]).emit("getBid", [newGame.data.players[i], newGame.room])
+            }
+
+            console.log(rooms)
         })
 
+        socket.on("sendBid", (playerName, bid, roomID) => {
 
-        socket.on("sendBid", (gameState, roomID, socketID) => {
-            let count = 0
             const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID )
             const foundRoom = games.find((game) => game.room === rooms[foundRoomID].id)
-            console.log(gameState)
-            console.log(`Got bid from player ${gameState.name} in room ${foundRoom.room}! The bid is ${gameState.bid}`)
 
-            foundRoom.data.players.find((player) => player.name === gameState.name).bid = gameState.bid
+            if (foundRoom.gamePhase !== 0) {
+                return
+            }
+            console.log(`Got bid from player ${playerName} in room ${foundRoom.room}! The bid is ${bid}`)
 
-            //console.log(foundRoom.data)
+            foundRoom.playerBids++
+            foundRoom.data.players.find((player) => player.name === playerName).bid = bid
 
             const connectedClients = [...io.sockets.adapter.rooms.get(foundRoom.room)]
 
-            if (socketID !== connectedClients[0]) {
-                return
+            if (foundRoom.playerBids === connectedClients.length) {
+                foundRoom.gamePhase++
+                io.to(connectedClients[0]).emit("playerCanPlay")
             }
-            console.log("sendBid emitted")
-            io.to(connectedClients[count]).emit("playerCanPlay")
-
-            const cardTimer = setInterval(() => {
-                io.to(connectedClients[count]).emit("getPlayedCard", [foundRoom.data.players[count], foundRoom.room])
-                count++
-
-                if (count === connectedClients.length) {
-                    clearInterval(cardTimer)
-                    io.to(connectedClients[0]).emit("trickFinished")
-                } else {
-                    io.to(connectedClients[count]).emit("playerCanPlay")
-                }
-            }, 10000)
         })
 
         socket.on("sendPlayedCard", (gameState, roomID, playedCard) => {
-            const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID )
+            const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID)
             const foundRoom = games.find((game) => game.room === rooms[foundRoomID].id)
-            console.log(`Got a card from player ${gameState.name} in room ${foundRoom.room}! The card played was ${playedCard[0].suit} ${playedCard[0].value}`)
+            const connectedClients = [...io.sockets.adapter.rooms.get(foundRoom.room)]
+
+            foundRoom.graveyard.push({suit: playedCard.suit, value: playedCard.value})
+            foundRoom.data.players.find((player) => player.name === gameState.name).hand = gameState.hand
+
+            console.log(`Got a card from player ${gameState.name} in room ${foundRoom.room}! The card played was ${playedCard.suit} ${playedCard.value}`)
+            console.log("Current graveyard: ", foundRoom.graveyard)
+
             socket.to(foundRoom.room).emit("updatePlayedCard", playedCard)
+
+            console.log("Count: ", foundRoom.playerCards)
+
+            if (foundRoom.playerCards !== foundRoom.data.players.length) {
+                io.to(connectedClients[foundRoom.playerCards]).emit("playerCanPlay")
+                foundRoom.playerCards++
+            } else {
+                console.log("All players have played a card.")
+
+                const trick = new Trick(foundRoom.graveyard, foundRoom.data.players)
+                const winner = trick.determineWinner()
+                console.log("Winner: ", trick.determineWinner())
+                foundRoom.data.players.find((player) => player.name === trick.determineWinner()).tricks++
+
+                foundRoom.playerCards = 1
+                foundRoom.graveyard = []
+
+                io.to(foundRoom.room).emit("playerWonTrick", winner)
+
+                if (foundRoom.data.players.every((player) => player.hand.length !== 0)) {
+                    setTimeout(() => {
+                        io.to(connectedClients[0]).emit("playerCanPlay")
+                    }, 5000)
+                } else {
+                    io.to(foundRoom.room).emit("showLeaderboard", foundRoom.data.calculatePoints())
+                }
+            }
         })
 
         console.log(io.of("/").sockets.size)
