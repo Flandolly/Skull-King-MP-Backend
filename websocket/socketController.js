@@ -8,7 +8,6 @@ module.exports = function (io) {
 
     const rooms = []
     const games = []
-    let bidMade = false
 
     io.on("connection", (socket) => {
         console.log("A user just connected: ", socket.id)
@@ -83,14 +82,12 @@ module.exports = function (io) {
             console.log([...io.sockets.adapter.rooms.get(room.id)])
 
             for (let i = 0; i < connectedClients.length; i++) {
-                io.to(connectedClients[i]).emit("gameStarted", [newGame.data.players[i], newGame.data.graveyard])
+                io.to(connectedClients[i]).emit("gameStarted", [newGame.data.players[i]])
             }
 
             for (let i = 0; i < connectedClients.length; i++) {
                 io.to(connectedClients[i]).emit("getBid", [newGame.data.players[i], newGame.room])
             }
-
-            console.log(rooms)
         })
 
         socket.on("sendBid", (playerName, bid, roomID) => {
@@ -118,6 +115,10 @@ module.exports = function (io) {
             const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID)
             const foundRoom = games.find((game) => game.room === rooms[foundRoomID].id)
             const connectedClients = [...io.sockets.adapter.rooms.get(foundRoom.room)]
+
+            if (foundRoom.gamePhase !== 1) {
+                return
+            }
 
             foundRoom.graveyard.push({suit: playedCard.suit, value: playedCard.value})
             foundRoom.data.players.find((player) => player.name === gameState.name).hand = gameState.hand
@@ -150,7 +151,29 @@ module.exports = function (io) {
                         io.to(connectedClients[0]).emit("playerCanPlay")
                     }, 5000)
                 } else {
+                    console.log(foundRoom.data)
                     io.to(foundRoom.room).emit("showLeaderboard", foundRoom.data.calculatePoints())
+
+                    if (foundRoom.data.round === foundRoom.data.rounds) {
+                        setTimeout(() => {
+                            io.to(foundRoom.room).emit("gameOver")
+                        }, 5000)
+                        return
+                    }
+
+                    foundRoom.gamePhase = 0
+                    foundRoom.data.round++
+                    foundRoom.data.dealCards()
+
+                    setTimeout(() => {
+                        for (let i = 0; i < connectedClients.length; i++) {
+                            io.to(connectedClients[i]).emit("newRoundStarted", [foundRoom.data.players[i]])
+                        }
+
+                        for (let i = 0; i < connectedClients.length; i++) {
+                            io.to(connectedClients[i]).emit("getBid", [foundRoom.data.players[i], foundRoom.room])
+                        }
+                    }, 5000)
                 }
             }
         })

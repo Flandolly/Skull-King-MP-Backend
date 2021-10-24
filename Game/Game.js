@@ -1,9 +1,8 @@
 class Game {
     constructor(players, deck) {
         this.players = players
-        this.graveyard = []
         this.rounds = 10
-        this.round = 1
+        this.round = 10
         this.deck = deck
     }
 
@@ -22,6 +21,7 @@ class Game {
     }
 
     calculatePoints() {
+        const stats = []
         for (const player of this.players) {
             if (player.bid === 0) {
                 if (player.tricks === 0) {
@@ -34,12 +34,12 @@ class Game {
             } else {
                 player.points -= (10 * Math.abs(player.bid - player.tricks))
             }
-
+            stats.push({playerName: player.name, points: player.points})
             player.tricks = 0
             player.bid = 0
         }
 
-        return this.players
+        return stats
     }
 }
 
