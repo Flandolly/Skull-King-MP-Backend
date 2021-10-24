@@ -3,8 +3,23 @@ const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const {createUserToken} = require("../middleware/auth")
 const {checkDupes} = require("../middleware/verifySignup");
+const Room = require("../models/Room");
 
 const router = express.Router()
+
+router.get("/", (req, res, next) => {
+    User.find({})
+        .populate("owner", "username")
+        .then((rooms) => res.json(rooms))
+        .catch(next)
+})
+
+router.get("/:id", (req, res, next) => {
+    User.findById(req.params.id)
+        .populate("owner", "username")
+        .then((room) => res.json(room))
+        .catch(next)
+})
 
 router.post("/signup", checkDupes, (req, res, next) => {
     bcrypt

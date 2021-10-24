@@ -162,6 +162,7 @@ module.exports = function (io) {
                     }
 
                     foundRoom.gamePhase = 0
+                    foundRoom.playerBids = 0
                     foundRoom.data.round++
                     foundRoom.data.dealCards()
 
