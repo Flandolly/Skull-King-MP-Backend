@@ -1,6 +1,7 @@
 class Game {
     constructor(players, deck) {
         this.players = players
+        this.graveyard = []
         this.rounds = 10
         this.round = 1
         this.deck = deck

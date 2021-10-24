@@ -8,6 +8,7 @@ module.exports = function (io) {
 
     const rooms = []
     const games = []
+    let bidMade = false
 
     io.on("connection", (socket) => {
         console.log("A user just connected: ", socket.id)
@@ -88,7 +89,7 @@ module.exports = function (io) {
             console.log([...io.sockets.adapter.rooms.get(room.id)])
 
             for (let i = 0; i < connectedClients.length; i++) {
-                io.to(connectedClients[i]).emit("gameStarted", [foundRoom.data.players[i]])
+                io.to(connectedClients[i]).emit("gameStarted", [foundRoom.data.players[i], foundRoom.data.graveyard])
             }
 
             setTimeout(() => {
@@ -98,7 +99,8 @@ module.exports = function (io) {
             }, 20000)
         })
 
-        socket.on("sendBid", (gameState, roomID) => {
+
+        socket.on("sendBid", (gameState, roomID, socketID) => {
             let count = 0
             const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID )
             const foundRoom = games.find((game) => game.room === rooms[foundRoomID].id)
@@ -106,23 +108,35 @@ module.exports = function (io) {
             console.log(`Got bid from player ${gameState.name} in room ${foundRoom.room}! The bid is ${gameState.bid}`)
 
             foundRoom.data.players.find((player) => player.name === gameState.name).bid = gameState.bid
-            console.log(foundRoom.data)
+
+            //console.log(foundRoom.data)
 
             const connectedClients = [...io.sockets.adapter.rooms.get(foundRoom.room)]
 
+            if (socketID !== connectedClients[0]) {
+                return
+            }
+            console.log("sendBid emitted")
             io.to(connectedClients[count]).emit("playerCanPlay")
 
             const cardTimer = setInterval(() => {
                 io.to(connectedClients[count]).emit("getPlayedCard", [foundRoom.data.players[count], foundRoom.room])
-                // io.to(foundRoom.room).emit("updatePlayedCard")
                 count++
 
                 if (count === connectedClients.length) {
                     clearInterval(cardTimer)
+                    io.to(connectedClients[0]).emit("trickFinished")
                 } else {
                     io.to(connectedClients[count]).emit("playerCanPlay")
                 }
             }, 10000)
+        })
+
+        socket.on("sendPlayedCard", (gameState, roomID, playedCard) => {
+            const foundRoomID = rooms.findIndex((room) => room._id.toString() === roomID )
+            const foundRoom = games.find((game) => game.room === rooms[foundRoomID].id)
+            console.log(`Got a card from player ${gameState.name} in room ${foundRoom.room}! The card played was ${playedCard[0].suit} ${playedCard[0].value}`)
+            socket.to(foundRoom.room).emit("updatePlayedCard", playedCard)
         })
 
         console.log(io.of("/").sockets.size)
