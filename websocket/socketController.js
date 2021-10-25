@@ -9,19 +9,6 @@ module.exports = function (io) {
     let rooms = []
     const games = []
 
-    Room.find({})
-        .populate("owner", "username")
-        .then((roomList) => {
-            for (const room of roomList) {
-                rooms.push(room)
-            }
-        })
-        .then(() => {
-            // console.log(rooms)
-        })
-
-    // console.log(rooms)
-
     io.on("connection", (socket) => {
         console.log("A user just connected: ", socket.id)
 
@@ -72,21 +59,12 @@ module.exports = function (io) {
                 })
         })
 
-        socket.on("userLeft", (room, user, socketID, action) => {
+        socket.on("userLeft", (room, user) => {
             Room.findOneAndUpdate({_id: room._id}, {$pull: {players: user.username}}, {new: true})
                 .then((room) => {
                     io.to(room.id).emit("syncRoom", room)
                     io.emit("roomList", rooms)
                     socket.leave(room.id)
-
-                    // if (action === "kickUser") {
-                    //     Room.find({})
-                    //         .populate("owner", "username")
-                    //         .then((roomList) => {
-                    //
-                    //         })
-                    //     io.to(socketID).emit("kickUser", "/lobby")
-                    // }
                 })
         })
 
@@ -118,12 +96,6 @@ module.exports = function (io) {
             for (let i = 0; i < connectedClients.length; i++) {
                 io.to(connectedClients[i]).emit("gameStarted", [newGame.data.players[i]])
             }
-
-            // io.to(newGame.room).emit("message", "A new game has been started.")
-
-            // for (let i = 0; i < connectedClients.length; i++) {
-            //     io.to(connectedClients[i]).emit("getBid", [newGame.data.players[i], newGame.room])
-            // }
         })
 
         socket.on("sendBid", (playerName, bid, roomID, socketID) => {

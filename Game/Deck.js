@@ -48,7 +48,6 @@ class Deck {
             this.cards.push({suit: "Mermaid", value: 15})
         }
         this.cards.push({suit: "Skull King", value: 15})
-        this.cards.push({suit: "Tigress", value: [0, 15]})
     }
 }
 
