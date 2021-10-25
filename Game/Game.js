@@ -2,7 +2,7 @@ class Game {
     constructor(players, deck) {
         this.players = players
         this.rounds = 10
-        this.round = 1
+        this.round = 10
         this.deck = deck
     }
 
