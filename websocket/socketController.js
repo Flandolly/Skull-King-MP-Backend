@@ -177,13 +177,6 @@ module.exports = function (io) {
                         setTimeout(() => {
                             io.to(foundRoom.room).emit("gameOver")
                         }, 5000)
-
-                        setTimeout(() => {
-                            io.to(foundRoom.room).emit("redirectToLobby")
-                            for (let i = 0; i < connectedClients; i++) {
-                                socket.leave(foundRoom.room)
-                            }
-                        }, 15000)
                         return
                     }
 
